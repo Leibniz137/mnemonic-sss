@@ -9,9 +9,6 @@ from secretsharing import (
 )
 
 from six import integer_types
-from utilitybelt import (
-    charset_to_int,
-)
 
 
 class SeedPhraseToSeedPhraseSecretSharer(SecretSharer):
@@ -81,6 +78,15 @@ def share_string_to_point(share_tuple, charset):
     (x, y_list) = share_tuple
     y = charset_to_int(y_list, charset)
     return (x, y)
+
+
+def charset_to_int(s, charset):
+    """ Turn a string into a non-negative integer.
+    """
+    output = 0
+    for char in s:
+        output = output * len(charset) + charset.index(char)
+    return output
 
 
 def main():
