@@ -31,8 +31,11 @@ class SeedPhraseToSeedPhraseSecretSharer(SecretSharer):
         for share in shares:
             points.append(share_string_to_point(share, cls.share_charset))
         secret_int = points_to_secret_int(points)
-        secret_string = int_to_charset(secret_int, cls.secret_charset)
-        return secret_string
+        secret_list = int_to_charset(secret_int, cls.secret_charset)
+        if len(secret_list) in (11, 23):
+            # we need to add a leading zero
+            return [cls.mnemo.wordlist[0]] + secret_list
+        return secret_list
 
 
 def int_to_charset(val, charset):
