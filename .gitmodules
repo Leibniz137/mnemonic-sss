@@ -1,3 +1,6 @@
 [submodule "python-mnemonic"]
 	path = python-mnemonic
 	url = git@github.com:trezor/python-mnemonic.git
+[submodule "secret-sharing"]
+	path = secret-sharing
+	url = git@github.com:springlabs/secret-sharing.git
