@@ -1,4 +1,4 @@
-Mnemonic-sss is a tool to split a seed phrase into a 2-of-3 Shamir Secret Shares.
+Mnemonic-sss is a tool to split a seed phrase using a 2-of-3 Shamir Secret Sharing scheme.
 
 The purpose of this tool is to provide safety and redundancy to your seed phrase backup.
 
