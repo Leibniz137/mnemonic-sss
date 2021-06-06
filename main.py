@@ -9,6 +9,15 @@ from secretsharing import (
 
 from six import integer_types
 
+# generate a seed phrase on the spot
+GENERATE = 'generate'
+
+# take 2 of the 3 shares and restore the original seed phrase
+RESTORE = 'restore'
+
+# take an existing seed phrase and split it into pieces
+SPLIT = 'split'
+
 
 class SeedPhraseToSeedPhraseSecretSharer(SecretSharer):
     mnemo = Mnemonic("english")
@@ -91,15 +100,114 @@ def charset_to_int(s, charset):
     return output
 
 
-def main():
-    m = SeedPhraseToSeedPhraseSecretSharer.mnemo.generate().split(' ')
+def read_words():
+    words = []
+    i = 1
+    word = input('Enter word {}: '.format(i))
+    while word:
+        if word not in SeedPhraseToSeedPhraseSecretSharer.mnemo.wordlist:
+            print("Error, word is not in official wordlist, reenter word")  # noqa: E501
+        else:
+            words.append(word)
+            i += 1
+        word = input('Enter word {}: '.format(i))
+    return words
+
+
+def generate(strength=256):
+    m = SeedPhraseToSeedPhraseSecretSharer.mnemo.generate(strength=strength).split(' ')   # noqa: E501
     pprint(m)
     shares = SeedPhraseToSeedPhraseSecretSharer.split_secret(m, 2, 3)
-    pprint(shares)
-    m2 = SeedPhraseToSeedPhraseSecretSharer.recover_secret(shares[0:2])
-    pprint(m2)
-    assert m == m2
+
+    # make sure that the split worked successfully!
+    reconsituted_seed1 = SeedPhraseToSeedPhraseSecretSharer.recover_secret(shares[0:2])   # noqa: E501
+    assert m == reconsituted_seed1
+    reconsituted_seed2 = SeedPhraseToSeedPhraseSecretSharer.recover_secret(shares[1:3])   # noqa: E501
+    assert m == reconsituted_seed2
+
+    for i, share in enumerate(shares):
+        pprint(share)
+        input("Did you write down the share? Include it's order! (ie 1st, 2nd, or 3rd) ")   # noqa: E501
+    input("Did you know that you need to include the share order to successfully restore the seed? ")   # noqa: E501
+
+    test_user_entries(shares)
+
+
+def restore():
+    ith = input("Which share do you want to input? (enter '1', '2', or '3') ")
+    i = int(ith)
+    print(
+        'Enter share {}, press enter twice to mark share as complete'
+        .format(ith))
+    share_i = read_words()
+
+    jth = input("Which share do you want to input? (enter '1', '2', or '3') ")
+    j = int(jth)
+    if i == j:
+        raise ValueError("Must input a different share.")
+    print(
+        'Enter share {}, press enter twice to mark share as complete'
+        .format(jth))
+    share_j = read_words()
+
+    seed = SeedPhraseToSeedPhraseSecretSharer.recover_secret([
+        (i, share_i),
+        (j, share_j)
+    ])
+    input('Press Enter to view restored restored seed:')
+    print(seed)
+
+
+def split():
+    print('Enter seed phrase, press enter twice to mark seed as complete')
+    seed = read_words()
+    shares = SeedPhraseToSeedPhraseSecretSharer.split_secret(seed, 2, 3)
+
+    # make sure that the split worked successfully!
+    reconsituted_seed1 = SeedPhraseToSeedPhraseSecretSharer.recover_secret(shares[0:2])   # noqa: E501
+    assert seed == reconsituted_seed1
+    reconsituted_seed2 = SeedPhraseToSeedPhraseSecretSharer.recover_secret(shares[1:3])   # noqa: E501
+    assert seed == reconsituted_seed2
+    for i, share in enumerate(shares):
+        pprint(share)
+        input("Did you write down the share? Include it's order! (ie 1st, 2nd, or 3rd) ")   # noqa: E501
+    input("Did you know that you need to include the share order to successfully restore the seed? ")   # noqa: E501
+    test_user_entries(shares)
+
+
+def test_user_entries(shares):
+    """
+    interactively test the user to make sure
+    that they wrote the shares down correctly
+    """
+    fifteenth_entry_1st_share = input("What's the 15th entry in the 1st share? ")   # noqa: E501
+    if fifteenth_entry_1st_share != shares[0][1][14]:
+        raise ValueError("Mismatch! {} != {} Try Again!!!".format(fifteenth_entry_1st_share, shares[0][1][14]))   # noqa: E501
+
+    fouth_entry_2nd_share = input("What's the 4th entry in the 2nd share? ")
+    if fouth_entry_2nd_share != shares[1][1][3]:
+        raise ValueError("Mismatch! {} != {} Try Again!!!".format(fouth_entry_2nd_share, shares[1][1][3]))   # noqa: E501
+
+    seventeenth_entry_3rd_share = input("What's the 17th entry in the 3rd share? ")   # noqa: E501
+    if seventeenth_entry_3rd_share != shares[2][1][16]:
+        raise ValueError("Mismatch! {} != {} Try Again!!!".format(seventeenth_entry_3rd_share, shares[2][1][16]))   # noqa: E501
+    print('Looks Good!')
+
+
+def main(args):
+    if args.action == GENERATE:
+        generate()
+    elif args.action == RESTORE:
+        restore()
+    elif args.action == SPLIT:
+        split()
+    else:
+        raise ValueError("Unknown action {}".format(args.action))
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('action', choices=[RESTORE, GENERATE, SPLIT])
+    args = parser.parse_args()
+    main(args)
