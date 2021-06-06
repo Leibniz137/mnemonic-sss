@@ -1,4 +1,3 @@
-# python2
 from pprint import pprint
 
 from mnemonic import Mnemonic
