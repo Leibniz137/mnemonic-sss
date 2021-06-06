@@ -5,8 +5,8 @@ The purpose of this tool is to provide safety and redundancy to your seed phrase
 Only 2 of the 3 shares are required to reconstruct your seed phrase.
 
 These shares are comprised of 29 or 30 words taken from the official set of english BIP-39 words.
-As with a seed phrase, words instead of characters or numbers are to provide the same redundancy and
-ease of use that the original seed phrase provides.
+As with a seed phrase, words are used instead of characters or numbers in order to provide typo redundancy and
+ease of use.
 
 Taken individually, each share reveals no information about the seed phrase, however,
 it is possibly to reconstruct the seed using any 2 shares.
